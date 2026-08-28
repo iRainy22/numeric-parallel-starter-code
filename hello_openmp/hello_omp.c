@@ -25,6 +25,8 @@ void Hello_thread(void)
 {
     int my_rank = omp_get_thread_num();
     int thread_count = omp_get_num_threads();
-
-    printf("Hello from OMP thread %d of %d\n", my_rank, thread_count);
+    for(int i = 0; i < 4; i++ ) 
+    {
+        printf("Hello%d from OMP thread %d of %d\n", i+1, my_rank, thread_count);
+    }
 }
