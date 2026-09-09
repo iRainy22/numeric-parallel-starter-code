@@ -212,9 +212,11 @@ void idct(double dct2[8][8], double idct2[8][8])
 //
 #define MAX_ITERATIONS (3)
 
-int main()
+int main(int argc, char *argv[])
 {
-    int thread_count=4;
+    
+    int thread_count;
+    sscanf(argv[1],"%d", &thread_count);
     double Macroblock[8][8] = { {101, 100,  94, 102,  97,  91,  88,  83},
                                 {101,  99,  98, 103,  93,  93, 107, 110},
                                 { 98,  97,  97,  97, 103, 101,  94, 100},
@@ -223,17 +225,15 @@ int main()
                                 { 99, 101, 105, 105, 116, 113,  87,  58},
                                 { 94,  69,  66,  66,  79,  70,  40,  26},
                                 { 59,  30,  33,  33,  32,  37,  45,  41} };
-    double dct2[8][8];
     double idct2[8][8];
-
-
+    double dct2[8][8];
 #pragma omp parallel for num_threads(thread_count)
     for(int frame_idx=0; frame_idx < MAX_ITERATIONS; frame_idx++)
     {
-        // Emulate a 1280x960 resolutioon image with one color channel - gray
-        for(int block_col_idx=0; block_col_idx < 160; block_col_idx++)
+        // Emulate a 128x96 resolutioon image with one color channel - gray
+        for(int block_col_idx=0; block_col_idx < 16; block_col_idx++)
         {
-            for(int block_row_idx=0; block_row_idx < 120; block_row_idx++)
+            for(int block_row_idx=0; block_row_idx < 12; block_row_idx++)
             {
                 // The DCT is used for image encoding (compression)
                 dct(Macroblock, dct2);
