@@ -154,9 +154,10 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &start);
     fstart = (FLOAT)start.tv_sec  + (FLOAT)start.tv_nsec / 1000000000.0;
 
-#pragma omp parallel for num_threads(thread_count)
     for(iter=0; iter < ITERATIONS; iter++)
     {
+        
+        #pragma omp parallel for num_threads(thread_count) schedule(static)
         // Skip first and last row, no neighbors to convolve with
         for(i=1; i<((IMG_HEIGHT)-1); i++)
         {
