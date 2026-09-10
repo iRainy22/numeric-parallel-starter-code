@@ -16,11 +16,11 @@
 //#define IMG_WIDTH (400)
 
 #define IMG_HEIGHT (960)
-
 #define IMG_WIDTH (1280)
 
 #define HEADER_SIZE (40)
-#define ITERATIONS (1000)
+
+#define ITERATIONS (90)
 
 #define FAST_IO
 
@@ -54,7 +54,7 @@ FLOAT PSF[9] = {-K/F, -K/F, -K/F, -K/F, K+1.0, -K/F, -K/F, -K/F, -K/F};
 
 int main(int argc, char *argv[])
 {
-    int fdin, fdout, bytesRead=0, bytesWritten=0, bytesLeft, i, j, iter, rc, pixel, readcnt=0, writecnt=0, thread_count;
+    int fdin, fdout, bytesRead=0, bytesWritten=0, bytesLeft, i, j, iter, rc, pixel, readcnt=0, writecnt=0;
     UINT64 microsecs=0, millisecs=0;
     FLOAT temp, fstart, fnow;
     struct timespec start, now;
@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &start);
     fstart = (FLOAT)start.tv_sec  + (FLOAT)start.tv_nsec / 1000000000.0;
     
-    if(argc < 4)
+    if(argc < 3)
     {
-       printf("Usage: sharpen input_file.ppm output_file.ppm <thread count>\n");
+       printf("Usage: sharpen input_file.ppm output_file.ppm\n");
        exit(-1);
     }
     else
@@ -81,8 +81,7 @@ int main(int argc, char *argv[])
             printf("Error opening %s\n", argv[1]);
         }
         //else
-        //printf("Output file=%s opened successfully\n", "sharpen.ppm");
-        sscanf(argv[3],"%d", &thread_count);
+        //    printf("Output file=%s opened successfully\n", "sharpen.ppm");
     }
 
     bytesLeft=HEADER_SIZE-1;
@@ -145,9 +144,9 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &now);
     fnow = (FLOAT)now.tv_sec  + (FLOAT)now.tv_nsec / 1000000000.0;
     printf("\nstart test at %lf\n", fnow-fstart);
+
     for(iter=0; iter < ITERATIONS; iter++)
     {
-        #pragma omp parallel for num_threads(thread_count)
         // Skip first and last row, no neighbors to convolve with
         for(i=1; i<((IMG_HEIGHT)-1); i++)
         {
@@ -198,6 +197,7 @@ int main(int argc, char *argv[])
 	        convB[(i*IMG_WIDTH)+j]=(UINT8)temp;
             }
         }
+
     }
 
     clock_gettime(CLOCK_MONOTONIC, &now);
