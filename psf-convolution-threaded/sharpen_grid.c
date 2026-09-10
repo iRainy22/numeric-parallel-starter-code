@@ -72,6 +72,7 @@
 
 typedef double FLOAT;
 
+pthread_barrier_t startRow, endRow;
 pthread_t threads[NUM_ROW_THREADS*NUM_COL_THREADS];
 
 typedef struct _threadArgs
@@ -118,59 +119,64 @@ void *sharpen_thread(void *threadptr)
     threadArgsType thargs=*((threadArgsType *)threadptr);
     int i=thargs.i;
     int j=thargs.j;
-    int repeat=0;
+    int repeat=0, runs;
     FLOAT temp=0;
 
     //printf("i=%d, j=%d, h=%d, w=%d, iter=%d\n", thargs.i, thargs.j, thargs.h, thargs.w, thargs.iterations);
-
-    for(i=thargs.i; i<(thargs.i+thargs.h); i++)
+    for(runs=0; runs < SHARPEN_GRID_ITERATIONS; runs++)
     {
-        for(j=thargs.j; j<(thargs.j+thargs.w); j++)
+        pthread_barrier_wait(&startRow);
+
+        for(i=thargs.i; i<(thargs.i+thargs.h); i++)
         {
-            temp=0;
-            temp += (PSF[0] * (FLOAT)R[(i-1)][j-1]);
-            temp += (PSF[1] * (FLOAT)R[(i-1)][j]);
-            temp += (PSF[2] * (FLOAT)R[(i-1)][j+1]);
-            temp += (PSF[3] * (FLOAT)R[(i)][j-1]);
-            temp += (PSF[4] * (FLOAT)R[(i)][j]);
-            temp += (PSF[5] * (FLOAT)R[(i)][j+1]);
-            temp += (PSF[6] * (FLOAT)R[(i+1)][j-1]);
-            temp += (PSF[7] * (FLOAT)R[(i+1)][j]);
-            temp += (PSF[8] * (FLOAT)R[(i+1)][j+1]);
-	        if(temp<0.0) temp=0.0;
-            if(temp>255.0) temp=255.0;
-            convR[i][j]=(UINT8)temp;
+            for(j=thargs.j; j<(thargs.j+thargs.w); j++)
+            {
+                temp=0;
+                temp += (PSF[0] * (FLOAT)R[(i-1)][j-1]);
+                temp += (PSF[1] * (FLOAT)R[(i-1)][j]);
+                temp += (PSF[2] * (FLOAT)R[(i-1)][j+1]);
+                temp += (PSF[3] * (FLOAT)R[(i)][j-1]);
+                temp += (PSF[4] * (FLOAT)R[(i)][j]);
+                temp += (PSF[5] * (FLOAT)R[(i)][j+1]);
+                temp += (PSF[6] * (FLOAT)R[(i+1)][j-1]);
+                temp += (PSF[7] * (FLOAT)R[(i+1)][j]);
+                temp += (PSF[8] * (FLOAT)R[(i+1)][j+1]);
+                if(temp<0.0) temp=0.0;
+                if(temp>255.0) temp=255.0;
+                convR[i][j]=(UINT8)temp;
 
-            temp=0;
-            temp += (PSF[0] * (FLOAT)G[(i-1)][j-1]);
-            temp += (PSF[1] * (FLOAT)G[(i-1)][j]);
-            temp += (PSF[2] * (FLOAT)G[(i-1)][j+1]);
-            temp += (PSF[3] * (FLOAT)G[(i)][j-1]);
-            temp += (PSF[4] * (FLOAT)G[(i)][j]);
-            temp += (PSF[5] * (FLOAT)G[(i)][j+1]);
-            temp += (PSF[6] * (FLOAT)G[(i+1)][j-1]);
-            temp += (PSF[7] * (FLOAT)G[(i+1)][j]);
-            temp += (PSF[8] * (FLOAT)G[(i+1)][j+1]);
-    	    if(temp<0.0) temp=0.0;
-    	    if(temp>255.0) temp=255.0;
-    	    convG[i][j]=(UINT8)temp;
+                temp=0;
+                temp += (PSF[0] * (FLOAT)G[(i-1)][j-1]);
+                temp += (PSF[1] * (FLOAT)G[(i-1)][j]);
+                temp += (PSF[2] * (FLOAT)G[(i-1)][j+1]);
+                temp += (PSF[3] * (FLOAT)G[(i)][j-1]);
+                temp += (PSF[4] * (FLOAT)G[(i)][j]);
+                temp += (PSF[5] * (FLOAT)G[(i)][j+1]);
+                temp += (PSF[6] * (FLOAT)G[(i+1)][j-1]);
+                temp += (PSF[7] * (FLOAT)G[(i+1)][j]);
+                temp += (PSF[8] * (FLOAT)G[(i+1)][j+1]);
+                if(temp<0.0) temp=0.0;
+                if(temp>255.0) temp=255.0;
+                convG[i][j]=(UINT8)temp;
 
-            temp=0;
-            temp += (PSF[0] * (FLOAT)B[(i-1)][j-1]);
-            temp += (PSF[1] * (FLOAT)B[(i-1)][j]);
-            temp += (PSF[2] * (FLOAT)B[(i-1)][j+1]);
-            temp += (PSF[3] * (FLOAT)B[(i)][j-1]);
-            temp += (PSF[4] * (FLOAT)B[(i)][j]);
-            temp += (PSF[5] * (FLOAT)B[(i)][j+1]);
-            temp += (PSF[6] * (FLOAT)B[(i+1)][j-1]);
-            temp += (PSF[7] * (FLOAT)B[(i+1)][j]);
-            temp += (PSF[8] * (FLOAT)B[(i+1)][j+1]);
-    	    if(temp<0.0) temp=0.0;
-    	    if(temp>255.0) temp=255.0;
-    	    convB[i][j]=(UINT8)temp;
+                temp=0;
+                temp += (PSF[0] * (FLOAT)B[(i-1)][j-1]);
+                temp += (PSF[1] * (FLOAT)B[(i-1)][j]);
+                temp += (PSF[2] * (FLOAT)B[(i-1)][j+1]);
+                temp += (PSF[3] * (FLOAT)B[(i)][j-1]);
+                temp += (PSF[4] * (FLOAT)B[(i)][j]);
+                temp += (PSF[5] * (FLOAT)B[(i)][j+1]);
+                temp += (PSF[6] * (FLOAT)B[(i+1)][j-1]);
+                temp += (PSF[7] * (FLOAT)B[(i+1)][j]);
+                temp += (PSF[8] * (FLOAT)B[(i+1)][j+1]);
+                if(temp<0.0) temp=0.0;
+                if(temp>255.0) temp=255.0;
+                convB[i][j]=(UINT8)temp;
+            }
         }
-    }
 
+        pthread_barrier_wait(&endRow);
+    }
     pthread_exit((void **)0);
 }
 
@@ -181,7 +187,7 @@ int main(int argc, char *argv[])
     UINT64 microsecs=0, millisecs=0;
     unsigned int thread_idx;
     FLOAT temp, fnow, fstart;
-    int runs=0, rc;
+    int rc, runs=0;
     struct timespec now, start;
 
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -289,86 +295,75 @@ int main(int argc, char *argv[])
     fstart = (FLOAT)now.tv_sec + (FLOAT)now.tv_nsec / 1000000000.0;
     printf("\nstart test at %lf\n", fnow - fstart);
 
-    for(runs=0; runs < SHARPEN_GRID_ITERATIONS; runs++)
+    pthread_barrier_init(&startRow, NULL, (NUM_ROW_THREADS*NUM_COL_THREADS)+1);
+    pthread_barrier_init(&endRow, NULL, (NUM_ROW_THREADS*NUM_COL_THREADS)+1);
+
+    for(thread_idx=0; thread_idx<(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx++)
     {
 
-        for(thread_idx=0; thread_idx<(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx++)
-        {
-
-            // Simplified threading can just break the image into full rows for each thread
-            //
-            // E.g. Assuming an even number of rows 2n (most common), then I can divide into 
-            //      1, 2, 4, 8, ..., 2n threads and rows up to one row per thread without needing
-            //      any division into columns.
-
-
-            // True tiled image processing per thread is difficult and relys upon an aspect ratio where
-            // tiles fit evenly into that aspect ratio.
-            
-            // hard coded for 4 x 3 threads, could generalize to any 4:3 aspect ratio
-            //
-            // Adapting this code for array indexing for any number of threads is left as an exercise for
-            // students.
-            
 #if (NUM_ROW_THREADS == 3) && (NUM_COL_THREADS == 4)
-            if(thread_idx == 0) {idx=1; jdx=1;}
-            if(thread_idx == 1) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 2) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 3) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 0) {idx=1; jdx=1;}
+        if(thread_idx == 1) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 2) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 3) {idx=1; jdx=(thread_idx*(IMG_W_SLICE-1));}
 
-            if(thread_idx == 4) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 5) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 6) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 7) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 4) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 5) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 6) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 7) {idx=IMG_H_SLICE; jdx=(thread_idx*(IMG_W_SLICE-1));}
 
-            if(thread_idx == 8) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 9) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 10) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
-            if(thread_idx == 11) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 8) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 9) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 10) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
+        if(thread_idx == 11) {idx=(2*(IMG_H_SLICE-1)); jdx=(thread_idx*(IMG_W_SLICE-1));}
 #else
 #error "Code must be re-written for thread indexing into array for thread 4:3 thread gridding and 12 threads"
 #endif
 
-            //printf("idx=%d, jdx=%d\n", idx, jdx);
+        //printf("idx=%d, jdx=%d\n", idx, jdx);
 
-            threadarg[thread_idx].i=idx;      
-            threadarg[thread_idx].h=IMG_H_SLICE-1;        
-            threadarg[thread_idx].j=jdx;        
-            threadarg[thread_idx].w=IMG_W_SLICE-1;
+        threadarg[thread_idx].i=idx;      
+        threadarg[thread_idx].h=IMG_H_SLICE-1;        
+        threadarg[thread_idx].j=jdx;        
+        threadarg[thread_idx].w=IMG_W_SLICE-1;
 
-            //threadarg[thread_idx].iterations=THREAD_ITERATIONS;
+        //threadarg[thread_idx].iterations=THREAD_ITERATIONS;
 
-            //printf("create thread_idx=%d\n", thread_idx);    
-            rc=pthread_create(&threads[thread_idx], (void *)0, sharpen_thread, (void *)&threadarg[thread_idx]);
-            if(rc < 0)
-            {
-                    perror("pthread_create");
-                    exit(-1);
-            }
-            //else
-            //{
-            //    printf("create thread_idx=%d\n", thread_idx);    
-            //}
-        }
-
-        // Join in same order created, but opposite order is a bit safer since thread created last will
-        // likely be slowest to join.
-        //
-        for(thread_idx=(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx > 0; thread_idx--)
-        //for(thread_idx=0; thread_idx<(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx++)
+        //printf("create thread_idx=%d\n", thread_idx);    
+        rc=pthread_create(&threads[thread_idx], (void *)0, sharpen_thread, (void *)&threadarg[thread_idx]);
+        if(rc < 0)
         {
-            //printf("join thread_idx=%d\n", thread_idx-1);    
-
-            if((pthread_join(threads[thread_idx-1], (void **)0)) < 0)
-            {
-                perror("pthread_join");
+                perror("pthread_create");
                 exit(-1);
-            }
         }
-
-        //printf("create run=%d ", runs);
-
+        //else
+        //{
+        //    printf("create thread_idx=%d\n", thread_idx);    
+        //}
     }
+
+    for (int runs = 0; runs < SHARPEN_GRID_ITERATIONS; runs++) 
+    {
+        pthread_barrier_wait(&startRow);
+        pthread_barrier_wait(&endRow);
+    }
+
+    // Join in same order created, but opposite order is a bit safer since thread created last will
+    // likely be slowest to join.
+    //
+    for(thread_idx=(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx > 0; thread_idx--)
+    //for(thread_idx=0; thread_idx<(NUM_ROW_THREADS*NUM_COL_THREADS); thread_idx++)
+    {
+        //printf("join thread_idx=%d\n", thread_idx-1);    
+
+        if((pthread_join(threads[thread_idx-1], (void **)0)) < 0)
+        {
+            perror("pthread_join");
+            exit(-1);
+        }
+    }
+
+    //printf("create run=%d ", runs);
 
     clock_gettime(CLOCK_MONOTONIC, &now);
     fnow = (FLOAT)now.tv_sec + (FLOAT)now.tv_nsec / 1000000000.0;
