@@ -154,58 +154,76 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &start);
     fstart = (FLOAT)start.tv_sec  + (FLOAT)start.tv_nsec / 1000000000.0;
 
-#pragma omp parallel num_threads(thread_count)
     for(iter=0; iter < ITERATIONS; iter++)
     {
         // Skip first and last row, no neighbors to convolve with
-        #pragma omp for schedule(dynamic,1)
-        for(i=1; i<((IMG_HEIGHT)-1); i++)
+        #pragma omp parallel sections num_threads(3)
         {
-
-            // Skip first and last column, no neighbors to convolve with
-            for(j=1; j<((IMG_WIDTH)-1); j++)
+            #pragma omp section
             {
-                temp=0;
-                temp += (PSF[0] * (FLOAT)R[((i-1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[1] * (FLOAT)R[((i-1)*IMG_WIDTH)+j]);
-                temp += (PSF[2] * (FLOAT)R[((i-1)*IMG_WIDTH)+j+1]);
-                temp += (PSF[3] * (FLOAT)R[((i)*IMG_WIDTH)+j-1]);
-                temp += (PSF[4] * (FLOAT)R[((i)*IMG_WIDTH)+j]);
-                temp += (PSF[5] * (FLOAT)R[((i)*IMG_WIDTH)+j+1]);
-                temp += (PSF[6] * (FLOAT)R[((i+1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[7] * (FLOAT)R[((i+1)*IMG_WIDTH)+j]);
-                temp += (PSF[8] * (FLOAT)R[((i+1)*IMG_WIDTH)+j+1]);
-	        if(temp<0.0) temp=0.0;
-	        if(temp>255.0) temp=255.0;
-	        convR[(i*IMG_WIDTH)+j]=(UINT8)temp;
-
-                temp=0;
-                temp += (PSF[0] * (FLOAT)G[((i-1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[1] * (FLOAT)G[((i-1)*IMG_WIDTH)+j]);
-                temp += (PSF[2] * (FLOAT)G[((i-1)*IMG_WIDTH)+j+1]);
-                temp += (PSF[3] * (FLOAT)G[((i)*IMG_WIDTH)+j-1]);
-                temp += (PSF[4] * (FLOAT)G[((i)*IMG_WIDTH)+j]);
-                temp += (PSF[5] * (FLOAT)G[((i)*IMG_WIDTH)+j+1]);
-                temp += (PSF[6] * (FLOAT)G[((i+1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[7] * (FLOAT)G[((i+1)*IMG_WIDTH)+j]);
-                temp += (PSF[8] * (FLOAT)G[((i+1)*IMG_WIDTH)+j+1]);
-	        if(temp<0.0) temp=0.0;
-	        if(temp>255.0) temp=255.0;
-	        convG[(i*IMG_WIDTH)+j]=(UINT8)temp;
-
-                temp=0;
-                temp += (PSF[0] * (FLOAT)B[((i-1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[1] * (FLOAT)B[((i-1)*IMG_WIDTH)+j]);
-                temp += (PSF[2] * (FLOAT)B[((i-1)*IMG_WIDTH)+j+1]);
-                temp += (PSF[3] * (FLOAT)B[((i)*IMG_WIDTH)+j-1]);
-                temp += (PSF[4] * (FLOAT)B[((i)*IMG_WIDTH)+j]);
-                temp += (PSF[5] * (FLOAT)B[((i)*IMG_WIDTH)+j+1]);
-                temp += (PSF[6] * (FLOAT)B[((i+1)*IMG_WIDTH)+j-1]);
-                temp += (PSF[7] * (FLOAT)B[((i+1)*IMG_WIDTH)+j]);
-                temp += (PSF[8] * (FLOAT)B[((i+1)*IMG_WIDTH)+j+1]);
-	        if(temp<0.0) temp=0.0;
-	        if(temp>255.0) temp=255.0;
-	        convB[(i*IMG_WIDTH)+j]=(UINT8)temp;
+                for(i=1; i<((IMG_HEIGHT)-1); i++)
+                {
+                    for(j=1; j<((IMG_WIDTH)-1); j++)
+                    {
+                        temp=0;
+                        temp += (PSF[0] * (FLOAT)R[((i-1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[1] * (FLOAT)R[((i-1)*IMG_WIDTH)+j]);
+                        temp += (PSF[2] * (FLOAT)R[((i-1)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[3] * (FLOAT)R[((i)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[4] * (FLOAT)R[((i)*IMG_WIDTH)+j]);
+                        temp += (PSF[5] * (FLOAT)R[((i)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[6] * (FLOAT)R[((i+1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[7] * (FLOAT)R[((i+1)*IMG_WIDTH)+j]);
+                        temp += (PSF[8] * (FLOAT)R[((i+1)*IMG_WIDTH)+j+1]);
+                    if(temp<0.0) temp=0.0;
+                    if(temp>255.0) temp=255.0;
+                    convR[(i*IMG_WIDTH)+j]=(UINT8)temp;
+                    }
+                }
+            }
+            #pragma omp section
+            {
+                for(i=1; i<((IMG_HEIGHT)-1); i++)
+                {
+                    for(j=1; j<((IMG_WIDTH)-1); j++)
+                    {
+                        temp=0;
+                        temp += (PSF[0] * (FLOAT)G[((i-1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[1] * (FLOAT)G[((i-1)*IMG_WIDTH)+j]);
+                        temp += (PSF[2] * (FLOAT)G[((i-1)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[3] * (FLOAT)G[((i)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[4] * (FLOAT)G[((i)*IMG_WIDTH)+j]);
+                        temp += (PSF[5] * (FLOAT)G[((i)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[6] * (FLOAT)G[((i+1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[7] * (FLOAT)G[((i+1)*IMG_WIDTH)+j]);
+                        temp += (PSF[8] * (FLOAT)G[((i+1)*IMG_WIDTH)+j+1]);
+                    if(temp<0.0) temp=0.0;
+                    if(temp>255.0) temp=255.0;
+                    convG[(i*IMG_WIDTH)+j]=(UINT8)temp;
+                    }
+                }
+            }
+            #pragma omp section
+            {
+                for(i=1; i<((IMG_HEIGHT)-1); i++)
+                {
+                    for(j=1; j<((IMG_WIDTH)-1); j++)
+                    {
+                        temp=0;
+                        temp += (PSF[0] * (FLOAT)B[((i-1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[1] * (FLOAT)B[((i-1)*IMG_WIDTH)+j]);
+                        temp += (PSF[2] * (FLOAT)B[((i-1)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[3] * (FLOAT)B[((i)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[4] * (FLOAT)B[((i)*IMG_WIDTH)+j]);
+                        temp += (PSF[5] * (FLOAT)B[((i)*IMG_WIDTH)+j+1]);
+                        temp += (PSF[6] * (FLOAT)B[((i+1)*IMG_WIDTH)+j-1]);
+                        temp += (PSF[7] * (FLOAT)B[((i+1)*IMG_WIDTH)+j]);
+                        temp += (PSF[8] * (FLOAT)B[((i+1)*IMG_WIDTH)+j+1]);
+                    if(temp<0.0) temp=0.0;
+                    if(temp>255.0) temp=255.0;
+                    convB[(i*IMG_WIDTH)+j]=(UINT8)temp;
+                    }
+                }
             }
         }
 
