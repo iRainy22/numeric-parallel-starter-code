@@ -11,6 +11,8 @@ double table_accel(int timeidx);
 
 double faccel(double time);
 
+double interpretAccel(double t);
+
 #define STEPS_PER_SEC (10)
 
 void main(int argc, char *argv[])
