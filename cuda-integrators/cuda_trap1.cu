@@ -34,6 +34,12 @@
 #include <stdlib.h>
 #include "timer.h"
 
+// ----- Extra Defines -----
+#define TH_PER_BLK 1024
+#define L_BOUND 0.0
+#define U_BOUND 3.14159265
+// ----- ----- -----
+
 #ifndef SAVE_STATS
 #define ITERS 50
 #else
@@ -84,9 +90,9 @@ __global__ void Dev_trap(
 /*-------------------------------------------------------------------
  * Host code 
  */
-void  Get_args(const int argc, char* argv[], int* n_p, 
-      float* a_p, float* b_p,
-      int* blk_ct, int* th_per_blk_p);
+void  Get_args(const int argc, char* argv[], int* n_p,
+      int* blk_ct);
+void divideSteps(const int n, int* blk_ct_p);
 void  Trap_wrapper(const float a, const float b, const int n, 
       float* trap_p, const int blk_ct, const int th_per_blk);
 float Serial_trap(const float a, const float b, const int n);
@@ -97,15 +103,17 @@ void  Update_stats(double start, double finish,
  * main
  */
 int main(int argc, char* argv[]) {
-   int n, blk_ct, th_per_blk;
-   float a, b, *trap_p, trap;
+   int n, blk_ct;
+   int th_per_blk = TH_PER_BLK;
+   float a = L_BOUND, b = U_BOUND;
+   float *trap_p, trap;
    double start, finish;  /* Only used on host */
    double dmin = 1.0e6, dmax = 0.0, dtotal = 0.0;
    double hmin = 1.0e6, hmax = 0.0, htotal = 0.0;
    cudaError_t err;
 
 
-   Get_args(argc, argv, &n, &a, &b, &blk_ct, &th_per_blk);
+   Get_args(argc, argv, &n, &blk_ct);
    err = cudaMallocManaged(&trap_p, sizeof(float));
    if (err != cudaSuccess) {
       fprintf(stderr, "cudaMallocManaged error = %s\n", 
@@ -155,25 +163,24 @@ int main(int argc, char* argv[]) {
  *            and quit.
  */
 void Get_args(const int argc, char* argv[], int* n_p, 
-      float* a_p, float* b_p, 
-      int* blk_ct_p, int* th_per_blk_p) {
+      int* blk_ct_p) {
 
-   if (argc != 6) {
-      fprintf(stderr, "usage: %s <n> <a> <b> <blk_ct> <th_per_blk>\n", 
+   if (argc != 2) {
+      fprintf(stderr, "usage: %s <Step_Count>\n", 
             argv[0]);
       exit(0);
    }
    *n_p = strtol(argv[1], NULL, 10);
-   *a_p = strtod(argv[2], NULL);
-   *b_p = strtod(argv[3], NULL);
-   *blk_ct_p = strtol(argv[4], NULL, 10);
-   *th_per_blk_p = strtol(argv[5], NULL, 10);
-   if (*n_p > (*blk_ct_p)*(*th_per_blk_p)) {
-      fprintf(stderr, "Number of threads must be >= n\n");
-      exit(0);
-   }
+
+   //Send N and pointers to return calcualted blk count
+   divideSteps(*n_p, blk_ct_p);
 }  /* Get_args */
 
+void divideSteps(const int n, int* blk_ct_p) { 
+	*blk_ct_p = n / TH_PER_BLK;
+	if (n % 1024 == 0) return;
+	*blk_ct_p += 1;	
+}
 
 /*-------------------------------------------------------------------
  * Function:  Trap_wrapper

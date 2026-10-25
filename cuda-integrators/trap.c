@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include "timer.h"
 
 float f(const float x);    /* Function we're integrating */
 float Trap(const float a, const float b, const int n);
@@ -28,17 +29,21 @@ int main(void) {
    float  integral;   /* Store result in integral   */
    float  a, b;       /* Left and right endpoints   */
    int    n;          /* Number of trapezoids       */
+   double t1, t2;
 
    printf("Enter a, b, and n\n");
    scanf("%f", &a);
    scanf("%f", &b);
    scanf("%d", &n);
 
+   GET_TIME(t1);
    integral = Trap(a, b, n);
-   
+   GET_TIME(t2);
+
    printf("With n = %d trapezoids, our estimate\n", n);
    printf("of the integral from %f to %f = %f\n",
       a, b, integral);
+   printf("Total time = %e\n", t2 - t1);
 
    return 0;
 }  /* main */
