@@ -6,6 +6,7 @@
 
 #include "ex4.h"
 
+#define FILE_OUT "LinearInterpretOut.csv"
 
 double table_accel(int timeidx);
 
@@ -21,7 +22,6 @@ void main(int argc, char *argv[])
     int steps_per_sec=STEPS_PER_SEC;
     double time, dt;
 
-
     printf("argc=%d, argv[0]=%s\n", argc, argv[0]);
 
     if(argc == 2)
@@ -35,19 +35,32 @@ void main(int argc, char *argv[])
         printf("Will use default time profile\n");
     }
 
+
+    FILE *fp = fopen(FILE_OUT, "w");
+    if (fp == NULL) {
+        printf("Error opening output file\n");
+        exit(-1);
+    }
+
+
     dt = 1.0 / steps_per_sec;
 
     printf("Step size of %lf\n", dt);
-
-
     printf("Number of values in profile = %lu for 1801 expected\n", sizeof(DefaultProfile)/sizeof(double));
+
+    fprintf(fp, "time, accel, original_accel\n");
 
     for(idx=0; idx <= (steps_per_sec*1800); idx++)
     {
-        // time you would use in your integrator and faccel(time) is the fuction to integrate
         time = 0.0 + (dt*(double)idx);
-        printf("%015.14lf, %015.14lf\n", time, interpretAccel(time));
+
+        if(idx % steps_per_sec == 0)
+            fprintf(fp, "%015.14lf, %015.14lf, %015.14lf\n", time, interpretAccel(time), table_accel(idx / steps_per_sec));
+        else
+            fprintf(fp, "%015.14lf, %015.14lf,\n", time, interpretAccel(time));
     }
+
+    fclose(fp);
 }
 
 // indexes into excel sheet, checks bounds, then returns acceleration value
